@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>Simple Map</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/3.23/esri/css/esri.css">
+    <style>
+      html, body, #map {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+    <script src="https://js.arcgis.com/3.23/"></script>
+    <script>
+      var map;
+	  var data;
+
+      require(["esri/map", 
+             "esri/layers/FeatureLayer", 
+               "dojo/domReady!"], 
+              function(Map,
+                       FeatureLayer                    
+                       ) {
+        map = new Map("map", {
+          basemap: "topo",  
+        });
+        data = new FeatureLayer("https://sampleserver6.arcgisonline.com/arcgis/rest/services/LocalGovernment/CitizenRequests/FeatureServer/0",{
+			  outFields: ["*"]
+			  });
+        map.addLayer(data);
+        
+
+	//Recuperer domaine attributaire  code/valeur
+	map.on("load", function(evt){
+		alert("Chargement des valeurs");
+		select = document.getElementById('selectElementId');
+		domaines=data.fields[1].domain.codedValues;
+		for (i = 0; i < domaines.length; i++){
+			var opt = document.createElement('option');
+			opt.value = domaines[i].code;
+			opt.innerHTML = domaines[i].name;
+			select.appendChild(opt);
+		};
+	});
+
+	//Requeter featurelayer à partir des valeurs du formulaire
+	dojo.connect(dojo.byId("rechercher"),"onclick", function(){
+		type = document.getElementById('selectElementId').value;
+		alert("Filtre carte avec elements de type: "+document.getElementById('selectElementId').options[document.getElementById('selectElementId').options.selectedIndex].innerHTML);
+		if(type=="*"){
+		data.setDefinitionExpression("");
+		}else{
+		data.setDefinitionExpression("requesttype ="+type);
+
+		}
+
+	});
+	
+      }); //fin
+      
+    </script>
+  </head>
+
+  <body>
+     <div id="form">
+       formulaire renseigné automatiquement avec la liste des valeurs d'un domaine attributaire :</br>
+       <select id="selectElementId"><option value="*" selected=1>Tous</option></select></br>
+	   <button id="rechercher">Filtrer</button>
+    </div>
+    <div id="map"></div>
+  </body>
+</html>
